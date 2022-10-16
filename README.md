@@ -1,3 +1,3 @@
-# Shopeefood/Foody Scraper
+# Shopeefood Scraper
 
-Scraping restaurants on Shopeefood/Foody with Node.js and Pupperteer
+Scraping restaurants in Da Nang from Shopeefood with Node.js and Pupperteer
