@@ -1,0 +1,17 @@
+{
+    "name": "data-scraping",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "start": "node src/index.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "puppeteer": "^18.2.1",
+        "uuid": "^9.0.0"
+    },
+    "type": "module"
+}
