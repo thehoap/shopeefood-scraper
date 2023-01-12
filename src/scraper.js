@@ -1,56 +1,62 @@
-import fs from "fs";
-import { v4 as uuidv4 } from "uuid";
-import { districts, wards } from "./constants.js";
-import { autoScroll, getWardOrDistrict } from "./utils.js";
-// export const scraperRestaurants = async (browser) => {
-//     for (let i = 0; i < districts.length; i++) {
-//         for (let j = 0; j < categories.length; j++) {
-//             const page = await browser.newPage();
-//             const url = `https://shopeefood.vn/da-nang/food/danh-sach-dia-diem-phuc-vu-${categories[j]}-tai-khu-vuc-${districts[i]}-giao-tan-noi`;
-//             await page.goto(url, {
-//                 waitUntil: "networkidle0",
-//             });
-//             await page.setViewport({
-//                 width: 1500,
-//                 height: 800,
-//             });
+import fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
+import { districts, wards } from './constants.js';
+import { autoScroll, getWardOrDistrict } from './utils.js';
+import pkg from 'xlsx';
+const { readFile } = pkg;
 
-//             await page.waitForSelector("#app");
-//             await autoScroll(page);
+/* USE FOR SCRAPING ALL RESTAURANTS ON SHOPEEFOOD (NOT YET TESTED)
+export const scraperRestaurants = async (browser) => {
+    for (let i = 0; i < districts.length; i++) {
+        for (let j = 0; j < categories.length; j++) {
+            const page = await browser.newPage();
+            const url = `https://shopeefood.vn/da-nang/food/danh-sach-dia-diem-phuc-vu-${categories[j]}-tai-khu-vuc-${districts[i]}-giao-tan-noi`;
+            await page.goto(url, {
+                waitUntil: "networkidle0",
+            });
+            await page.setViewport({
+                width: 1500,
+                height: 800,
+            });
 
-//             console.log("Load done");
+            await page.waitForSelector("#app");
+            await autoScroll(page);
 
-//             const restaurants = await page.$$eval(
-//                 ".container .now-list-restaurant .list-restaurant .item-restaurant",
-//                 (els) => {
-//                     return els.map((el) => ({
-//                         image: el
-//                             .querySelector(".img-restaurant img")
-//                             .getAttribute("src"),
-//                         name: el.querySelector(".info-restaurant .name-res")
-//                             ?.innerText,
-//                         address: el.querySelector(
-//                             ".info-restaurant .address-res"
-//                         )?.innerText,
-//                         type:
-//                             el.querySelector(".kind-restaurant")?.innerText ||
-//                             "",
-//                     }));
-//                 }
-//             );
-//             console.log(restaurants);
-//             await page.close();
-//         }
-//     }
-//     await browser.close();
-// };
+            console.log("Load done");
+
+            const restaurants = await page.$$eval(
+                ".container .now-list-restaurant .list-restaurant .item-restaurant",
+                (els) => {
+                    return els.map((el) => ({
+                        image: el
+                            .querySelector(".img-restaurant img")
+                            .getAttribute("src"),
+                        name: el.querySelector(".info-restaurant .name-res")
+                            ?.innerText,
+                        address: el.querySelector(
+                            ".info-restaurant .address-res"
+                        )?.innerText,
+                        type:
+                            el.querySelector(".kind-restaurant")?.innerText ||
+                            "",
+                    }));
+                }
+            );
+            console.log(restaurants);
+            await page.close();
+        }
+    }
+    await browser.close();
+};
+*/
+
 export const scraperRestaurants = async (browser) => {
     let restaurants = [];
 
     const page = await browser.newPage();
     const url = `https://shopeefood.vn/da-nang/danh-sach-dia-diem-giao-tan-noi`;
     await page.goto(url, {
-        waitUntil: "networkidle0",
+        waitUntil: 'networkidle0',
     });
 
     await page.setViewport({
@@ -58,27 +64,27 @@ export const scraperRestaurants = async (browser) => {
         height: 800,
     });
 
-    await page.waitForSelector("#app");
-    console.log("Load done");
+    await page.waitForSelector('#app');
+    console.log('Load done');
 
-    const totalPages = await page.$$eval(".pagination", (els) => {
-        return +els[0].querySelector("li:nth-last-child(2) a").innerText;
+    const totalPages = await page.$$eval('.pagination', (els) => {
+        return +els[0].querySelector('li:nth-last-child(2) a').innerText;
     });
 
-    for (let currentPage = 1; currentPage <= totalPages; currentPage++) {
+    for (let currentPage = 1; currentPage <= 1; currentPage++) {
         await autoScroll(page);
 
         let restaurantsPerPage = await scraperRestaurantPerPage(page);
         restaurants = restaurants.concat(restaurantsPerPage);
 
         if (currentPage != totalPages) {
-            await page.click(".pagination li:last-child a");
+            await page.click('.pagination li:last-child a');
         }
     }
     const restaurantsJson = JSON.stringify(restaurants);
-    fs.writeFile("db/restaurants.json", restaurantsJson, "utf8", (err) => {
+    fs.writeFile('db/restaurants.json', restaurantsJson, 'utf8', (err) => {
         if (err) throw err;
-        console.log("Complete Restaurants");
+        console.log('Complete Restaurants');
     });
 
     await browser.close();
@@ -86,9 +92,9 @@ export const scraperRestaurants = async (browser) => {
 
 export const scraperRestaurantDetail = async (browser) => {
     const page = await browser.newPage();
-    await page.exposeFunction("readfile", async (filePath) => {
+    await page.exposeFunction('readfile', async (filePath) => {
         return new Promise((resolve, reject) => {
-            fs.readFile(filePath, "utf8", async (err, text) => {
+            fs.readFile(filePath, 'utf8', async (err, text) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -100,7 +106,7 @@ export const scraperRestaurantDetail = async (browser) => {
                         const page = await browser.newPage();
                         const url = restaurant.link;
                         await page.goto(url, {
-                            waitUntil: "networkidle0",
+                            waitUntil: 'networkidle0',
                         });
                         await page.setViewport({
                             width: 1500,
@@ -108,7 +114,7 @@ export const scraperRestaurantDetail = async (browser) => {
                         });
 
                         try {
-                            await page.waitForSelector("#FoodyApp");
+                            await page.waitForSelector('#FoodyApp');
                             const restaurantMenu = await scraperRestaurantMenu(
                                 page
                             );
@@ -123,12 +129,12 @@ export const scraperRestaurantDetail = async (browser) => {
                             });
                             const menuJson = JSON.stringify(menus);
                             fs.writeFile(
-                                "db/menus.json",
+                                'db/menus.json',
                                 menuJson,
-                                "utf8",
+                                'utf8',
                                 (err) => {
                                     if (err) throw err;
-                                    console.log("Complete Menu");
+                                    console.log('Complete Menu');
                                 }
                             );
 
@@ -143,11 +149,11 @@ export const scraperRestaurantDetail = async (browser) => {
                             fs.writeFile(
                                 filePath,
                                 restaurantsJson,
-                                "utf8",
+                                'utf8',
                                 (err) => {
                                     if (err) throw err;
                                     console.log(
-                                        "Complete Restaurants with Menu Time Price range"
+                                        'Complete Restaurants with Menu Time Price range'
                                     );
                                 }
                             );
@@ -162,7 +168,7 @@ export const scraperRestaurantDetail = async (browser) => {
     });
 
     await page.evaluate(async () => {
-        await window.readfile("db/restaurants.json");
+        await window.readfile('db/restaurants.json');
         await browser.close();
     });
 };
@@ -172,7 +178,7 @@ export const scraperWard = async (browser) => {
     const url = `https://diaocthinhvuong.vn/danh-sach-don-vi-hanh-chinh-thanh-pho-da-nang/"
     )}`;
     await page.goto(url, {
-        waitUntil: "networkidle0",
+        waitUntil: 'networkidle0',
     });
 
     await page.setViewport({
@@ -181,13 +187,13 @@ export const scraperWard = async (browser) => {
     });
 
     let wards = [];
-    await page.waitForSelector("#myhome-app");
+    await page.waitForSelector('#myhome-app');
 
-    wards = await page.$$eval("#footable_17355 tbody tr", (els) => {
+    wards = await page.$$eval('#footable_17355 tbody tr', (els) => {
         return els.map((el, index) => ({
-            id: el.querySelector(".ninja_column_4")?.innerText,
-            name: el.querySelector(".ninja_column_3")?.innerText,
-            districtId: el.querySelector(".ninja_column_2")?.innerText,
+            id: el.querySelector('.ninja_column_4')?.innerText,
+            name: el.querySelector('.ninja_column_3')?.innerText,
+            districtId: el.querySelector('.ninja_column_2')?.innerText,
         }));
     });
     console.log(wards);
@@ -196,18 +202,18 @@ export const scraperWard = async (browser) => {
 
 const scraperRestaurantPerPage = async (page) => {
     let restaurantsPerPage = await page.$$eval(
-        ".container .now-list-restaurant .list-restaurant .item-restaurant",
+        '.container .now-list-restaurant .list-restaurant .item-restaurant',
         (els) =>
             els.map((el) => ({
                 link:
-                    "https://www.foody.vn" +
-                    el.querySelector("a.item-content").getAttribute("href"),
+                    'https://www.foody.vn' +
+                    el.querySelector('a.item-content').getAttribute('href'),
                 image: el
-                    .querySelector(".img-restaurant img")
-                    .getAttribute("src"),
-                name: el.querySelector(".info-restaurant .name-res")?.innerText,
-                type: el.querySelector(".kind-restaurant")?.innerText || "",
-                address: el.querySelector(".info-restaurant .address-res")
+                    .querySelector('.img-restaurant img')
+                    .getAttribute('src'),
+                name: el.querySelector('.info-restaurant .name-res')?.innerText,
+                type: el.querySelector('.kind-restaurant')?.innerText || '',
+                address: el.querySelector('.info-restaurant .address-res')
                     ?.innerText,
             }))
     );
@@ -215,8 +221,8 @@ const scraperRestaurantPerPage = async (page) => {
     restaurantsPerPage = restaurantsPerPage.map((restaurant) => {
         const HVDistrict = {
             id: 497,
-            label: "Hòa Vang",
-            value: "hoa-vang",
+            label: 'Hòa Vang',
+            value: 'hoa-vang',
         };
         const district =
             restaurant.address.indexOf(HVDistrict.label) !== -1
@@ -224,17 +230,17 @@ const scraperRestaurantPerPage = async (page) => {
                 : districts.find(
                       (district) =>
                           district.label ===
-                          "Quận " +
-                              getWardOrDistrict(restaurant.address, "Quận ")
+                          'Quận ' +
+                              getWardOrDistrict(restaurant.address, 'Quận ')
                   );
         const ward = wards.find(
             (ward) =>
                 ward.label ===
-                    "Phường " + getWardOrDistrict(restaurant.address, "P. ") ||
+                    'Phường ' + getWardOrDistrict(restaurant.address, 'P. ') ||
                 ward.label ===
-                    "Xã " + getWardOrDistrict(restaurant.address, "X. ") ||
+                    'Xã ' + getWardOrDistrict(restaurant.address, 'X. ') ||
                 ward.label ===
-                    "Xã " + getWardOrDistrict(restaurant.address, "Xã ")
+                    'Xã ' + getWardOrDistrict(restaurant.address, 'Xã ')
         );
 
         return {
@@ -250,22 +256,22 @@ const scraperRestaurantPerPage = async (page) => {
 
 const scraperRestaurantMenu = async (page) => {
     const menu = await page.$$eval(
-        ".microsite-table-book .tb-offers-box .delivery-dishes-item.ng-scope",
+        '.microsite-table-book .tb-offers-box .delivery-dishes-item.ng-scope',
         (els) =>
             els.map((el, index) => ({
                 id: index,
                 image: el
-                    .querySelector(".delivery-dishes-item-left .img-box")
-                    .getAttribute("src"),
+                    .querySelector('.delivery-dishes-item-left .img-box')
+                    .getAttribute('src'),
                 name: el.querySelector(
-                    ".delivery-dishes-item-right .title-name"
+                    '.delivery-dishes-item-right .title-name'
                 )?.innerText,
                 currentPrice:
                     el.querySelector(
-                        ".delivery-dishes-item-right .rating-food .price-discount .ng-binding"
-                    )?.innerText || "",
+                        '.delivery-dishes-item-right .rating-food .price-discount .ng-binding'
+                    )?.innerText || '',
                 originalPrice: el.querySelector(
-                    ".delivery-dishes-item-right .rating-food .price.ng-binding"
+                    '.delivery-dishes-item-right .rating-food .price.ng-binding'
                 )?.innerText,
             }))
     );
@@ -274,14 +280,38 @@ const scraperRestaurantMenu = async (page) => {
 
 const scraperRestaurantInfo = async (page) => {
     return await page.$$eval(
-        ".micro-header .main-information .res-common-price",
+        '.micro-header .main-information .res-common-price',
         (els) => ({
             time: els[0]
-                .querySelector(".micro-timesopen span:nth-child(3)")
-                ?.innerText.replace(/\u00A0/, ""),
+                .querySelector('.micro-timesopen span:nth-child(3)')
+                ?.innerText.replace(/\u00A0/, ''),
             priceRange: els[0].querySelector(
-                ".res-common-minmaxprice span:last-child > span"
+                '.res-common-minmaxprice span:last-child > span'
             )?.innerText,
         })
     );
+};
+
+export const scraperCoordinates = () => {
+    const workbook = readFile('db/coordinates.xlsx');
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const restaurants = JSON.parse(
+        fs.readFileSync('db/restaurants.json', 'utf8')
+    );
+    const updatedRestaurants = [];
+
+    for (let i = 2; i <= 201; i++) {
+        const coordinates = worksheet[`C${i}`].v;
+        const [lat, long] = coordinates.split(',');
+        updatedRestaurants.push({
+            ...restaurants[i - 2],
+            coordinates: { lat, long },
+        });
+    }
+
+    const restaurantsJson = JSON.stringify(updatedRestaurants);
+    fs.writeFile('db/restaurants.json', restaurantsJson, 'utf8', (err) => {
+        if (err) throw err;
+        console.log('Complete Restaurants with Coordinates');
+    });
 };
